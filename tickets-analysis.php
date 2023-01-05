@@ -98,15 +98,29 @@ function owner_numbers() {
     $owners = array();
     $total_tickets_closed = 0;
     foreach ($rows as &$row) {
-        $owners[$row['Owner']] = array(
-            'total' => isset($owners[$row['Owner']]['total']) ? $owners[$row['Owner']]['total'] += 1 : 1,
-            'fixed' => isset($owners[$row['Owner']]['fixed']) && $row['Resolution'] === 'fixed' ? $owners[$row['Owner']]['fixed'] += 1 : 1,
-            'invalid' => isset($owners[$row['Owner']]['invalid']) && $row['Resolution'] === '' ? $owners[$row['Owner']]['invalid'] += 1 : 1,
-            'opened' => isset($owners[$row['Owner']]['opened']) && $row['Resolution'] === '' ? $owners[$row['Owner']]['opened'] += 1 : 1,
-        );
+        if ( !isset($owners[$row['Owner']]) ) {
+            $owners[$row['Owner']] = array(
+                'total'   => 0,
+                'fixed'   => 0,
+                'invalid' => 0,
+                'opened'  => 0,
+            );
+        }
+
+        $owners[$row['Owner']]['total']++;
 
         if ( $row['Resolution'] === 'fixed' ) {
+            $owners[$row['Owner']]['fixed']++;
+        }
+
+        if ( $row['Resolution'] === 'invalid' ) {
+            $owners[$row['Owner']]['invalid']++;
+        }
+
+        if ( $row['Status'] === 'closed' ) {
             $total_tickets_closed += 1;
+        } else {
+            $owners[$row['Owner']]['opened']++;
         }
     }
 
@@ -118,7 +132,7 @@ function owner_numbers() {
     foreach ( $owners as $owner => $value ) {
         $total_owners += 1;
         if ( $value['total'] > 20 ) {
-            $toprint .= ' ' . $owner . " has " . $value['total'] . " tickets, with " . $value['opened'] . " opened tickets, " . $value['invalid'] . " invalid tickets and " . $value['fixed'] . " closed tickets\n";
+            $toprint .= ' ' . $owner . " has " . $value['total'] . " tickets, with " . $value['opened'] . " opened tickets, " . $value['invalid'] . " invalid tickets and " . $value['fixed'] . " fixed tickets\n";
         }
     }
 
